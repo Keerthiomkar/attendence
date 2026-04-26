@@ -23,9 +23,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy project
 COPY . /app/
 
-# Expose port 8000
+# Expose port (Render uses dynamic PORT)
 EXPOSE 8000
 
-# Run gunicorn server
-#CMD ["gunicorn", "--bind", "0.0.0.0:8000", "attendance_system.wsgi:application"]
-CMD ["sh", "-c", "python manage.py migrate && python manage.py collectstatic --noinput && gunicorn projectname.wsgi:application"]
+# Run migrations + collectstatic + start server
+CMD ["sh", "-c", "python manage.py migrate && python manage.py collectstatic --noinput && gunicorn attendance_system.wsgi:application"]
