@@ -34,7 +34,7 @@ MIDDLEWARE = [
 ]
 
 # URL CONFIG
-ROOT_URLCONF = 'attendence.urls'
+ROOT_URLCONF = 'attendance_system.urls'
 
 # TEMPLATES
 TEMPLATES = [
@@ -54,7 +54,7 @@ TEMPLATES = [
 ]
 
 # WSGI
-WSGI_APPLICATION = 'attendence.wsgi.application'
+WSGI_APPLICATION = 'attendance_system.wsgi.application'
 
 # DATABASE
 DATABASES = {
