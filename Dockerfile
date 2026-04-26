@@ -27,4 +27,5 @@ COPY . /app/
 EXPOSE 8000
 
 # Run gunicorn server
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "attendance_system.wsgi:application"]
+#CMD ["gunicorn", "--bind", "0.0.0.0:8000", "attendance_system.wsgi:application"]
+CMD ["sh", "-c", "python manage.py migrate && python manage.py collectstatic --noinput && gunicorn projectname.wsgi:application"]
