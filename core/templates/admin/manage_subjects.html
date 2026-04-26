@@ -1,0 +1,198 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Subjects{% endblock %}
+
+{% block content %}
+<div class="animate__animated animate__fadeIn">
+    <!-- Header -->
+    <div class="mb-8">
+        <a href="{% url 'admin_dashboard' %}"
+            class="inline-flex items-center text-indigo-600 hover:text-indigo-800 font-medium transition-colors mb-4 bg-indigo-50 hover:bg-indigo-100 px-4 py-2 rounded-lg">
+            <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+        </a>
+        <h2 class="text-3xl font-heading font-extrabold text-slate-800 flex items-center">
+            <div
+                class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center mr-4 shadow-sm">
+                <i class="fas fa-book text-xl"></i>
+            </div>
+            Manage Subjects
+        </h2>
+    </div>
+
+    <!-- Form Section -->
+    <div
+        class="glass-panel rounded-3xl p-8 border border-white/60 shadow-xl shadow-emerald-100 mb-10 relative overflow-hidden group">
+        <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-400 to-teal-500"></div>
+        <h3 class="text-2xl font-heading font-bold text-slate-800 mb-6 flex items-center">
+            <div class="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-lg flex items-center justify-center mr-3">
+                <i class="fas fa-plus"></i>
+            </div>
+            Add New Subject
+        </h3>
+
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="add_subject">
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Subject Name -->
+                <div class="lg:col-span-2">
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">Subject Name</label>
+                    <div class="input-wrapper">{{ subject_form.name }}</div>
+                </div>
+                <!-- Subject Code -->
+                <div class="lg:col-span-2">
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">Subject Code <span
+                            class="text-slate-400 font-normal">(Optional)</span></label>
+                    <div class="input-wrapper">{{ subject_form.code }}</div>
+                </div>
+                <!-- Class -->
+                <div class="lg:col-span-2">
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">Class</label>
+                    <div class="input-wrapper">{{ subject_form.class_ref }}</div>
+                </div>
+                <!-- Section -->
+                <div class="lg:col-span-2">
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">Section</label>
+                    <div class="input-wrapper">
+                        {{ subject_form.section }}
+                        <p class="text-xs text-slate-500 mt-1"><i class="fas fa-info-circle mr-1"></i>Select a class
+                            first</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-end pt-4 border-t border-slate-100">
+                <button type="submit"
+                    class="px-8 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white rounded-xl shadow-lg shadow-emerald-500/30 font-bold flex items-center transition-all hover:-translate-y-0.5">
+                    <i class="fas fa-save mr-2"></i>Create Subject
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Data Table Section -->
+    <div class="glass-panel rounded-3xl p-8 border border-white/60 shadow-lg relative overflow-hidden">
+        <h3 class="text-2xl font-heading font-bold text-slate-800 mb-6 flex items-center">
+            <i class="fas fa-list text-emerald-500 mr-3"></i>Subject Directory
+        </h3>
+
+        {% if subjects %}
+        <div class="overflow-x-auto rounded-xl border border-slate-200 shadow-sm">
+            <table class="modern-table min-w-full bg-white whitespace-nowrap">
+                <thead class="bg-slate-50/80 backdrop-blur-sm border-b border-slate-200">
+                    <tr>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider w-1/3">
+                            Subject Info</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Class
+                        </th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">
+                            Section</th>
+                        <th class="px-6 py-4 text-right text-xs font-bold text-slate-500 uppercase tracking-wider">
+                            Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 text-sm">
+                    {% for subject in subjects %}
+                    <tr class="hover:bg-indigo-50/30 transition duration-200 group">
+                        <td class="px-6 py-4">
+                            <div class="flex items-center">
+                                <div
+                                    class="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center mr-3 group-hover:scale-110 group-hover:bg-emerald-100 transition-all">
+                                    <i class="fas fa-book"></i>
+                                </div>
+                                <div>
+                                    <p class="font-bold text-slate-800 text-base">{{ subject.name }}</p>
+                                    <p class="text-xs text-slate-500 font-medium">Code: {{ subject.code|default:"<span class='italic text-slate-300'>N/A</span>" }}</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span
+                                class="inline-flex items-center px-2.5 py-0.5 rounded-md text-sm font-medium bg-indigo-50 text-indigo-700 border border-indigo-100">
+                                {{ subject.class_ref.name }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4">
+                            {% if subject.section %}
+                            <span
+                                class="inline-flex items-center px-2.5 py-0.5 rounded-md text-sm font-medium bg-slate-100 text-slate-700 border border-slate-200">
+                                {{ subject.section.name }}
+                            </span>
+                            {% else %}
+                            <span class="text-slate-400 italic text-sm">- All -</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 text-right">
+                            <form method="post"
+                                onsubmit="return confirm('Are you sure you want to delete this subject?');"
+                                class="inline-block">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="delete_subject">
+                                <input type="hidden" name="subject_id" value="{{ subject.id }}">
+                                <button type="submit"
+                                    class="w-8 h-8 rounded-lg bg-rose-50 text-rose-500 hover:bg-rose-500 hover:text-white flex items-center justify-center transition-colors shadow-sm"
+                                    title="Delete Subject">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-16 bg-slate-50 rounded-2xl border border-dashed border-slate-300">
+            <div
+                class="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm text-slate-300">
+                <i class="fas fa-folder-open text-3xl"></i>
+            </div>
+            <p class="text-slate-500 text-lg font-medium">No subjects found</p>
+            <p class="text-slate-400 text-sm mt-1">Create your first subject using the form above</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Tailwind styling for dynamic inputs
+        const inputs = document.querySelectorAll('.input-wrapper input, .input-wrapper select');
+        inputs.forEach(input => {
+            input.classList.add(
+                'w-full', 'px-4', 'py-3', 'rounded-xl', 'border', 'border-slate-200',
+                'bg-white/80', 'focus:bg-white', 'focus:ring-2', 'focus:ring-emerald-500/20', 'focus:border-emerald-500',
+                'transition-all', 'outline-none', 'text-slate-700', 'font-medium'
+            );
+        });
+
+        // AJAX for dependent dropdown
+        const classSelect = document.getElementById('id_class_ref') || document.querySelector('select[name="class_ref"]');
+        const sectionSelect = document.getElementById('id_section') || document.querySelector('select[name="section"]');
+
+        if (classSelect && sectionSelect) {
+            classSelect.addEventListener('change', function () {
+                const classId = this.value;
+
+                // Clear current options
+                sectionSelect.innerHTML = '<option value="" selected>---------</option>';
+
+                if (classId) {
+                    fetch(`/api/get-sections/?class_id=${classId}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            data.forEach(section => {
+                                const option = document.createElement('option');
+                                option.value = section.id;
+                                option.textContent = section.name;
+                                sectionSelect.appendChild(option);
+                            });
+                        })
+                        .catch(error => console.error('Error fetching sections:', error));
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

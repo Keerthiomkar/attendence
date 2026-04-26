@@ -1,0 +1,435 @@
+{% extends 'base.html' %}
+
+{% block title %}Mark Attendance{% endblock %}
+
+{% block content %}
+<div class="animate__animated animate__fadeIn space-y-8">
+
+    <!-- Page Header -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-2">
+        <div>
+            <a href="{% url 'teacher_dashboard' %}"
+                class="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium transition-colors mb-4 bg-blue-50 hover:bg-blue-100 px-4 py-2 rounded-lg">
+                <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+            </a>
+            <h2 class="text-3xl font-heading font-extrabold text-slate-800 flex items-center">
+                <div
+                    class="w-12 h-12 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center mr-4 shadow-sm">
+                    <i class="fas fa-clipboard-user border-2 border-transparent text-xl"></i>
+                </div>
+                Mark Attendance
+            </h2>
+        </div>
+    </div>
+
+    <!-- Filter Form -->
+    <div
+        class="glass-panel rounded-3xl p-8 border border-white/60 shadow-xl shadow-blue-100 relative overflow-hidden group">
+        <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-indigo-500"></div>
+        <h3 class="text-xl font-heading font-bold text-slate-800 mb-6 flex items-center">
+            <div class="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-lg flex items-center justify-center mr-3">
+                <i class="fas fa-filter"></i>
+            </div>
+            Select Class Details
+        </h3>
+
+        <form method="post" id="filterForm" class="space-y-6">
+            {% csrf_token %}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-end">
+                <div>
+                    <label
+                        class="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide flex items-center">
+                        <i class="fas fa-school text-indigo-400 mr-2"></i>Class
+                    </label>
+                    <div class="input-wrapper">{{ form.class_ref }}</div>
+                </div>
+                <div>
+                    <label
+                        class="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide flex items-center">
+                        <i class="fas fa-layer-group text-emerald-400 mr-2"></i>Section
+                    </label>
+                    <div class="input-wrapper">{{ form.section }}</div>
+                </div>
+                <div>
+                    <label
+                        class="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide flex items-center">
+                        <i class="fas fa-book text-pink-400 mr-2"></i>Subject
+                    </label>
+                    <div class="input-wrapper">{{ form.subject }}</div>
+                </div>
+                <div>
+                    <label
+                        class="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide flex items-center">
+                        <i class="fas fa-calendar-day text-amber-400 mr-2"></i>Date
+                    </label>
+                    <div class="input-wrapper">{{ form.date }}</div>
+                </div>
+            </div>
+
+            <div class="pt-4 border-t border-slate-100 flex justify-end">
+                <button type="submit"
+                    class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-8 py-3 rounded-xl transition-all shadow-lg shadow-indigo-500/30 flex items-center elevate-hover">
+                    <i class="fas fa-search mr-2"></i>Show Students
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Students List for Attendance -->
+    {% if students %}
+    <div
+        class="glass-panel rounded-3xl p-8 border border-white/60 shadow-lg relative overflow-hidden animate__animated animate__fadeInUp">
+
+        <div
+            class="flex flex-col sm:flex-row sm:items-center justify-between mb-8 pb-4 border-b border-slate-100 gap-4">
+            <h3 class="text-2xl font-heading font-bold text-slate-800 flex items-center">
+                <i class="fas fa-users text-blue-500 mr-3"></i>Student Attendance List
+            </h3>
+
+            {% if not attendance_exists %}
+            <div class="flex items-center gap-3 text-sm font-medium">
+                <span
+                    class="bg-emerald-50 text-emerald-700 border border-emerald-200 px-3 py-1.5 rounded-lg flex items-center shadow-sm">
+                    <span class="w-3 h-3 rounded-full bg-emerald-500 mr-2 animate-pulse"></span> Present
+                </span>
+                <span
+                    class="bg-rose-50 text-rose-700 border border-rose-200 px-3 py-1.5 rounded-lg flex items-center shadow-sm">
+                    <span class="w-3 h-3 rounded-full bg-rose-500 mr-2"></span> Absent
+                </span>
+            </div>
+            {% endif %}
+        </div>
+
+        {% if attendance_exists %}
+        <div
+            class="bg-amber-50 border border-amber-200 rounded-2xl p-5 mb-8 flex items-start shadow-sm animate__animated animate__headShake">
+            <div
+                class="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center text-amber-600 shrink-0 mr-4">
+                <i class="fas fa-lock"></i>
+            </div>
+            <div>
+                <h4 class="font-bold text-amber-800 text-lg">Attendance Fixed</h4>
+                <p class="text-amber-700 font-medium mt-1">Attendance has already been submitted for this class on this
+                    date. Displaying in Read-Only mode.</p>
+            </div>
+        </div>
+        {% else %}
+        <!-- No Attendance State -->
+        <div id="noAttendanceState"
+            class="bg-blue-50 border border-blue-200 rounded-2xl p-6 mb-8 shadow-sm flex flex-col sm:flex-row justify-between items-center sm:items-start gap-4">
+            <div class="flex items-start">
+                <div
+                    class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 shrink-0 mr-4 shadow-sm border border-white">
+                    <i class="fas fa-info-circle text-xl"></i>
+                </div>
+                <div>
+                    <h4 class="text-xl font-bold text-blue-900 mb-1">Attention Needed</h4>
+                    <p class="text-blue-700 font-medium">Attendance has not been finalized yet.</p>
+                </div>
+            </div>
+            {% if not is_past_date %}
+            <button type="button" id="startAttendanceBtn"
+                class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-xl font-bold transition-all shadow-md shadow-blue-500/20 w-full sm:w-auto elevate-hover flex items-center justify-center whitespace-nowrap">
+                <i class="fas fa-signature mr-2"></i>Take Attendance
+            </button>
+            {% endif %}
+        </div>
+
+        <div id="attendanceInstructions"
+            class="hidden mb-6 bg-slate-50 border border-slate-200 rounded-xl p-4 flex items-center text-slate-600 font-medium">
+            <i class="fas fa-magic text-indigo-400 mr-3 text-lg"></i>
+            Click any row to instantly toggle status. By default, everyone is marked Present!
+        </div>
+        {% endif %}
+
+        <div id="attendanceContent" class="{% if not attendance_exists %}hidden{% endif %} transition-all duration-500">
+            <div class="overflow-x-auto rounded-xl border border-slate-200 shadow-sm">
+                <table class="modern-table min-w-full bg-white whitespace-nowrap" id="attendanceTable">
+                    <thead class="bg-slate-50/80 backdrop-blur-sm border-b border-slate-200">
+                        <tr>
+                            <th
+                                class="hidden sm:table-cell px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider w-24">
+                                Roll No</th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">
+                                Student Profile</th>
+                            <th class="px-6 py-4 text-center text-xs font-bold text-slate-500 uppercase tracking-wider">
+                                Status</th>
+                            <th
+                                class="px-6 py-4 text-center text-xs font-bold text-slate-500 uppercase tracking-wider w-32">
+                                History %</th>
+                        </tr>
+                    </thead>
+                    <tbody id="attendanceBody" class="divide-y divide-slate-100 text-sm">
+                        {% for student in students %}
+                        <tr class="attendance-row transition duration-200 {% if not attendance_exists %}cursor-pointer hover:bg-slate-50{% endif %} group"
+                            data-student-id="{{ student.id }}" data-status="{{ student.current_status }}">
+                            <td class="hidden sm:table-cell px-6 py-4">
+                                <span class="font-mono font-bold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-md">
+                                    {{ student.roll_number }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="flex items-center">
+                                    <div
+                                        class="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-100 to-blue-100 text-indigo-600 flex items-center justify-center mr-3 font-bold border border-white shadow-sm transition-transform group-hover:scale-110">
+                                        {{ student.name|make_list|first|upper }}
+                                    </div>
+                                    <span class="font-bold text-slate-800 text-base">{{ student.name }}</span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 text-center">
+                                <div class="flex justify-center">
+                                    {% if student.current_status == 'PRESENT' %}
+                                    <span
+                                        class="status-badge inline-flex items-center px-4 py-2 rounded-xl font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm transition-colors w-32 justify-center">
+                                        <i class="fas fa-check-circle mr-2 text-emerald-500"></i><span>Present</span>
+                                    </span>
+                                    {% else %}
+                                    <span
+                                        class="status-badge inline-flex items-center px-4 py-2 rounded-xl font-bold bg-rose-50 text-rose-700 border border-rose-200 shadow-sm transition-colors w-32 justify-center">
+                                        <i class="fas fa-times-circle mr-2 text-rose-500"></i><span>Absent</span>
+                                    </span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 text-center">
+                                <div class="flex items-center justify-center">
+                                    {% if student.attendance_percentage >= 75 %}
+                                    <span
+                                        class="font-bold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-lg border border-emerald-100">
+                                        {{ student.attendance_percentage }}%
+                                    </span>
+                                    {% elif student.attendance_percentage >= 50 %}
+                                    <span
+                                        class="font-bold text-amber-600 bg-amber-50 px-3 py-1 rounded-lg border border-amber-100">
+                                        {{ student.attendance_percentage }}%
+                                    </span>
+                                    {% else %}
+                                    <span
+                                        class="font-bold text-rose-600 bg-rose-50 px-3 py-1 rounded-lg border border-rose-100">
+                                        {{ student.attendance_percentage }}%
+                                    </span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="mt-8">
+                {% if attendance_exists %}
+                <button type="button" disabled
+                    class="w-full bg-slate-300 text-slate-500 py-4 rounded-xl font-bold cursor-not-allowed shadow-none flex items-center justify-center text-lg">
+                    <i class="fas fa-lock mr-2"></i>Attendance Submitted (Read-Only)
+                </button>
+                {% else %}
+                <button type="button" id="saveAttendanceBtn"
+                    class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white py-4 rounded-xl font-extrabold transition-all shadow-xl shadow-blue-500/30 flex items-center justify-center text-lg elevate-hover">
+                    <i class="fas fa-cloud-upload-alt mr-2 text-xl"></i>Save Attendance Records
+                </button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% elif selected_data %}
+    <div class="glass-panel text-center py-16 rounded-3xl border border-dashed border-slate-300">
+        <div
+            class="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm text-slate-300">
+            <i class="fas fa-folder-open text-3xl"></i>
+        </div>
+        <p class="text-slate-500 text-xl font-bold">No students found</p>
+        <p class="text-slate-400 mt-2 font-medium">There are no students assigned to this section yet.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Form styling
+        const inputs = document.querySelectorAll('.input-wrapper input, .input-wrapper select');
+        inputs.forEach(input => {
+            input.classList.add(
+                'w-full', 'px-4', 'py-3', 'border', 'border-slate-200', 'rounded-xl', 'bg-white',
+                'focus:ring-2', 'focus:ring-indigo-500/20', 'focus:border-indigo-500', 'transition-all',
+                'font-medium', 'text-slate-700', 'outline-none', 'shadow-sm', 'cursor-pointer'
+            );
+        });
+
+        const classSelect = document.getElementById('id_class');
+        const sectionSelect = document.getElementById('id_section');
+        const subjectSelect = document.getElementById('id_subject');
+
+        if (classSelect) {
+            classSelect.addEventListener('change', function () {
+                const classId = this.value;
+
+                sectionSelect.innerHTML = '<option value="">---------</option>';
+                subjectSelect.innerHTML = '<option value="">---------</option>';
+
+                if (!classId) return;
+
+                // Visual loading
+                sectionSelect.innerHTML = '<option value="">Loading...</option>';
+                subjectSelect.innerHTML = '<option value="">Loading...</option>';
+
+                // Update sections
+                fetch(`/api/get-sections/?class_id=${classId}`)
+                    .then(r => r.ok ? r.json() : Promise.reject())
+                    .then(data => {
+                        sectionSelect.innerHTML = '<option value="">---------</option>';
+                        data.forEach(s => {
+                            const opt = document.createElement('option');
+                            opt.value = s.id; opt.textContent = s.name;
+                            sectionSelect.appendChild(opt);
+                        });
+                    }).catch(() => sectionSelect.innerHTML = '<option value="">---------</option>');
+
+                // Update subjects
+                fetch(`/api/get-subjects/?class_id=${classId}`)
+                    .then(r => r.ok ? r.json() : Promise.reject())
+                    .then(data => {
+                        subjectSelect.innerHTML = '<option value="">---------</option>';
+                        data.forEach(s => {
+                            const opt = document.createElement('option');
+                            opt.value = s.id; opt.textContent = s.name;
+                            subjectSelect.appendChild(opt);
+                        });
+                    }).catch(() => subjectSelect.innerHTML = '<option value="">---------</option>');
+            });
+        }
+
+        // Attendance toggle functionality
+        const attendanceRows = document.querySelectorAll('.attendance-row');
+        const isReadOnly = "{{ attendance_exists|yesno:'true,false' }}" === "true";
+
+        if (!isReadOnly) {
+            attendanceRows.forEach(row => {
+                row.addEventListener('click', function () {
+                    const currentStatus = this.getAttribute('data-status');
+                    const statusBadge = this.querySelector('.status-badge');
+                    const icon = statusBadge.querySelector('i');
+                    const text = statusBadge.querySelector('span');
+
+                    // Add a tiny bump animation
+                    this.style.transform = 'scale(0.98)';
+                    setTimeout(() => { this.style.transform = 'scale(1)'; }, 150);
+
+                    if (currentStatus === 'PRESENT') {
+                        // Change to ABSENT
+                        this.setAttribute('data-status', 'ABSENT');
+                        statusBadge.classList.replace('bg-emerald-50', 'bg-rose-50');
+                        statusBadge.classList.replace('text-emerald-700', 'text-rose-700');
+                        statusBadge.classList.replace('border-emerald-200', 'border-rose-200');
+                        icon.classList.replace('fa-check-circle', 'fa-times-circle');
+                        icon.classList.replace('text-emerald-500', 'text-rose-500');
+                        text.textContent = 'Absent';
+                    } else {
+                        // Change to PRESENT
+                        this.setAttribute('data-status', 'PRESENT');
+                        statusBadge.classList.replace('bg-rose-50', 'bg-emerald-50');
+                        statusBadge.classList.replace('text-rose-700', 'text-emerald-700');
+                        statusBadge.classList.replace('border-rose-200', 'border-emerald-200');
+                        icon.classList.replace('fa-times-circle', 'fa-check-circle');
+                        icon.classList.replace('text-rose-500', 'text-emerald-500');
+                        text.textContent = 'Present';
+                    }
+                });
+            });
+        }
+
+        // Toggle attendance table visibility
+        const startAttendanceBtn = document.getElementById('startAttendanceBtn');
+        const attendanceContent = document.getElementById('attendanceContent');
+        const noAttendanceState = document.getElementById('noAttendanceState');
+        const attendanceInstructions = document.getElementById('attendanceInstructions');
+
+        if (startAttendanceBtn) {
+            startAttendanceBtn.addEventListener('click', function () {
+                // Animate transition
+                noAttendanceState.style.opacity = '0';
+                setTimeout(() => {
+                    noAttendanceState.classList.add('hidden');
+                    attendanceContent.classList.remove('hidden');
+                    attendanceContent.classList.add('animate__animated', 'animate__fadeIn');
+
+                    if (attendanceInstructions) {
+                        attendanceInstructions.classList.remove('hidden');
+                        attendanceInstructions.classList.add('animate__animated', 'animate__fadeInDown');
+                    }
+                }, 300);
+            });
+        }
+
+        // Save attendance
+        const saveBtn = document.getElementById('saveAttendanceBtn');
+        if (saveBtn) {
+            saveBtn.addEventListener('click', function () {
+                const records = [];
+                attendanceRows.forEach(row => {
+                    records.push({
+                        student_id: row.getAttribute('data-student-id'),
+                        status: row.getAttribute('data-status')
+                    });
+                });
+
+                const data = {
+                    class_id: parseInt("{{ selected_data.class_ref.id|default:'' }}", 10) || null,
+                    section_id: parseInt("{{ selected_data.section.id|default:'' }}", 10) || null,
+                    subject_id: parseInt("{{ selected_data.subject.id|default:'' }}", 10) || null,
+                    date: '{{ selected_data.date|date:"Y-m-d"|default:"" }}',
+                    records: records
+                };
+
+                const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+                // Loading state
+                saveBtn.disabled = true;
+                saveBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin mr-3 text-xl"></i>Saving Records...';
+                saveBtn.classList.replace('from-blue-600', 'from-indigo-400');
+                saveBtn.classList.replace('to-indigo-600', 'to-blue-400');
+
+                fetch('{% url "save_attendance" %}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrftoken
+                    },
+                    body: JSON.stringify(data)
+                })
+                    .then(r => r.json())
+                    .then(result => {
+                        if (result.success) {
+                            // Success animation on button
+                            saveBtn.innerHTML = '<i class="fas fa-check-circle mr-3 text-xl"></i>Success!';
+                            saveBtn.classList.replace('from-indigo-400', 'from-emerald-500');
+                            saveBtn.classList.replace('to-blue-400', 'to-teal-500');
+                            setTimeout(() => {
+                                window.location.href = '{% url "teacher_dashboard" %}';
+                            }, 1000);
+                        } else {
+                            alert('✗ ' + result.message);
+                            resetBtn();
+                        }
+                    })
+                    .catch(error => {
+                        alert('Error saving attendance. Please try again.');
+                        resetBtn();
+                    });
+
+                function resetBtn() {
+                    saveBtn.disabled = false;
+                    saveBtn.innerHTML = '<i class="fas fa-cloud-upload-alt mr-2 text-xl"></i>Save Attendance Records';
+                    saveBtn.classList.replace('from-indigo-400', 'from-blue-600');
+                    saveBtn.classList.replace('to-blue-400', 'to-indigo-600');
+                    saveBtn.classList.replace('from-emerald-500', 'from-blue-600');
+                    saveBtn.classList.replace('to-teal-500', 'to-indigo-600');
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

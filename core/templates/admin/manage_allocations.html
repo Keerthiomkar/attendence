@@ -1,0 +1,344 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Allocations{% endblock %}
+
+{% block content %}
+<div class="animate__animated animate__fadeIn">
+    <!-- Header -->
+    <div class="mb-8">
+        <a href="{% url 'admin_dashboard' %}"
+            class="inline-flex items-center text-indigo-600 hover:text-indigo-800 font-medium transition-colors mb-4 bg-indigo-50 hover:bg-indigo-100 px-4 py-2 rounded-lg">
+            <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+        </a>
+        <h2 class="text-3xl font-heading font-extrabold text-slate-800 flex items-center">
+            <div
+                class="w-12 h-12 bg-purple-100 text-purple-600 rounded-xl flex items-center justify-center mr-4 shadow-sm">
+                <i class="fas fa-tasks text-xl"></i>
+            </div>
+            Manage Allocations
+        </h2>
+    </div>
+
+    <!-- Allocation Form -->
+    <div
+        class="glass-panel rounded-3xl p-8 border border-white/60 shadow-xl shadow-purple-100 mb-10 relative overflow-hidden group">
+        <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-400 to-indigo-500"></div>
+        <h3 class="text-2xl font-heading font-bold text-slate-800 mb-6 flex items-center">
+            <div class="w-10 h-10 bg-purple-50 text-purple-600 rounded-lg flex items-center justify-center mr-3">
+                <i class="fas fa-plus-circle"></i>
+            </div>
+            Assign Classes & Subjects
+        </h3>
+
+        <form method="post" class="space-y-8">
+            {% csrf_token %}
+
+            <div class="max-w-md">
+                <label class="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wider">Select
+                    Teacher</label>
+                <div class="input-wrapper">{{ form.teacher }}</div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Assign Classes -->
+                <div class="bg-white/50 border border-slate-200 rounded-2xl p-5 shadow-inner">
+                    <label class="block text-sm font-bold text-indigo-700 mb-3 flex items-center">
+                        <i class="fas fa-school mr-2"></i> Assign Classes
+                    </label>
+                    <div id="classes-container"
+                        class="bg-white rounded-xl border border-slate-100 max-h-64 overflow-y-auto p-4 custom-scrollbar shadow-sm">
+                        <!-- Custom CSS required to style the checkboxes output by {{ form.assigned_classes }} -->
+                        <div class="checkbox-list space-y-2">
+                            {{ form.assigned_classes }}
+                        </div>
+                    </div>
+                    <p class="text-xs font-semibold text-slate-500 mt-3"><i class="fas fa-info-circle mr-1"></i>Select
+                        classes to load sections</p>
+                </div>
+
+                <!-- Assign Sections -->
+                <div class="bg-white/50 border border-slate-200 rounded-2xl p-5 shadow-inner">
+                    <label class="block text-sm font-bold text-emerald-700 mb-3 flex items-center">
+                        <i class="fas fa-layer-group mr-2"></i> Assign Sections
+                    </label>
+                    <div id="sections-container"
+                        class="bg-white rounded-xl border border-slate-100 max-h-64 overflow-y-auto p-4 custom-scrollbar shadow-sm">
+                        <!-- Sections will be loaded here dynamically -->
+                        <div class="flex flex-col items-center justify-center h-20 text-slate-400">
+                            <i class="fas fa-list opacity-50 text-2xl mb-2"></i>
+                            <p class="text-sm">Select classes first</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Assign Subjects -->
+                <div class="bg-white/50 border border-slate-200 rounded-2xl p-5 shadow-inner">
+                    <label class="block text-sm font-bold text-pink-700 mb-3 flex items-center">
+                        <i class="fas fa-book mr-2"></i> Assign Subjects
+                    </label>
+                    <div id="subjects-container"
+                        class="bg-white rounded-xl border border-slate-100 max-h-64 overflow-y-auto p-4 custom-scrollbar shadow-sm">
+                        <!-- Subjects will be loaded here dynamically -->
+                        <div class="flex flex-col items-center justify-center h-20 text-slate-400">
+                            <i class="fas fa-book-open opacity-50 text-2xl mb-2"></i>
+                            <p class="text-sm">Select classes first</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-end pt-4 border-t border-slate-100">
+                <button type="submit"
+                    class="px-8 py-3 bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white rounded-xl shadow-lg shadow-purple-500/30 font-bold flex items-center transition-all hover:-translate-y-0.5">
+                    <i class="fas fa-save mr-2"></i>Save Allocations
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Current Allocations List -->
+    <div class="glass-panel rounded-3xl p-8 border border-white/60 shadow-lg relative overflow-hidden">
+        <h3 class="text-2xl font-heading font-bold text-slate-800 mb-6 flex items-center">
+            <i class="fas fa-clipboard-list text-purple-500 mr-3"></i>Current Allocations
+        </h3>
+
+        {% if teachers %}
+        <div class="space-y-6">
+            {% for teacher in teachers %}
+            <div
+                class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 hover:shadow-md transition-shadow relative overflow-hidden group">
+                <div
+                    class="absolute -right-8 -top-8 w-24 h-24 bg-purple-50 rounded-full group-hover:scale-150 transition-transform duration-500 -z-10">
+                </div>
+
+                <div class="flex flex-col xl:flex-row xl:items-start gap-6">
+                    <!-- Teacher Profile -->
+                    <div
+                        class="xl:w-1/4 flex items-center xl:flex-col xl:items-start xl:border-r border-slate-100 xl:pr-6">
+                        <div
+                            class="w-12 h-12 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center mr-4 xl:mr-0 xl:mb-3 shadow-sm border border-white">
+                            <i class="fas fa-chalkboard-teacher text-lg"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-lg font-heading font-bold text-slate-800">
+                                {{ teacher.user.get_full_name }}
+                            </h4>
+                            <p class="text-sm font-medium text-slate-500 mt-0.5">
+                                ID: {{ teacher.employee_id }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Allocations Data -->
+                    <div class="xl:w-3/4 grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <!-- Classes -->
+                        <div class="bg-slate-50/50 rounded-xl p-4 border border-slate-100">
+                            <p
+                                class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 flex items-center">
+                                <i class="fas fa-school mr-2 text-indigo-400"></i>Classes
+                            </p>
+                            <div class="flex flex-wrap gap-1.5">
+                                {% for class in teacher.assigned_classes.all %}
+                                <span
+                                    class="bg-white border border-indigo-100 text-indigo-700 text-xs font-semibold px-2.5 py-1 rounded-md shadow-sm">{{ class.name }}</span>
+                                {% empty %}
+                                <span class="text-slate-400 text-xs italic">Not assigned</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- Sections -->
+                        <div class="bg-slate-50/50 rounded-xl p-4 border border-slate-100">
+                            <p
+                                class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 flex items-center">
+                                <i class="fas fa-layer-group mr-2 text-emerald-400"></i>Sections
+                            </p>
+                            <div class="flex flex-wrap gap-1.5">
+                                {% for section in teacher.assigned_sections.all %}
+                                <span
+                                    class="bg-white border border-emerald-100 text-emerald-700 text-xs font-semibold px-2.5 py-1 rounded-md shadow-sm">{{ section.class_ref.name }} - {{ section.name }}</span>
+                                {% empty %}
+                                <span class="text-slate-400 text-xs italic">Not assigned</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- Subjects -->
+                        <div class="bg-slate-50/50 rounded-xl p-4 border border-slate-100">
+                            <p
+                                class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 flex items-center">
+                                <i class="fas fa-book mr-2 text-pink-400"></i>Subjects
+                            </p>
+                            <div class="flex flex-wrap gap-1.5">
+                                {% for subject in teacher.assigned_subjects.all %}
+                                <span
+                                    class="bg-white border border-pink-100 text-pink-700 text-xs font-semibold px-2.5 py-1 rounded-md shadow-sm">{{ subject.name }}</span>
+                                {% empty %}
+                                <span class="text-slate-400 text-xs italic">Not assigned</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-16 bg-slate-50 rounded-2xl border border-dashed border-slate-300">
+            <div
+                class="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm text-slate-300">
+                <i class="fas fa-users-slash text-3xl"></i>
+            </div>
+            <p class="text-slate-500 text-lg font-medium">No allocations found</p>
+            <p class="text-slate-400 text-sm mt-1">Assign classes and subjects using the form above</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    /* Styling for the dynamically generated checkboxes */
+    .checkbox-list ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .checkbox-list li label {
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        color: #334155;
+        font-weight: 500;
+        font-size: 0.875rem;
+        transition: color 0.2s;
+    }
+
+    .checkbox-list li label:hover {
+        color: #4F46E5;
+    }
+
+    .checkbox-list li input[type="checkbox"] {
+        appearance: none;
+        background-color: #fff;
+        margin: 0 0.75rem 0 0;
+        font: inherit;
+        color: currentColor;
+        width: 1.15em;
+        height: 1.15em;
+        border: 1.5px solid #cbd5e1;
+        border-radius: 0.25em;
+        display: grid;
+        place-content: center;
+        transition: all 0.2s ease-in-out;
+        cursor: pointer;
+    }
+
+    .checkbox-list li input[type="checkbox"]::before {
+        content: "";
+        width: 0.65em;
+        height: 0.65em;
+        transform: scale(0);
+        transition: 120ms transform ease-in-out;
+        box-shadow: inset 1em 1em white;
+        background-color: transparent;
+        transform-origin: center;
+        clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+    }
+
+    .checkbox-list li input[type="checkbox"]:checked {
+        background-color: #4F46E5;
+        border-color: #4F46E5;
+    }
+
+    .checkbox-list li input[type="checkbox"]:checked::before {
+        transform: scale(1);
+        background-color: white;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Style Select form input dynamically
+        const inputs = document.querySelectorAll('.input-wrapper select');
+        inputs.forEach(input => {
+            input.classList.add(
+                'w-full', 'px-4', 'py-3', 'rounded-xl', 'border', 'border-slate-200',
+                'bg-white', 'focus:ring-2', 'focus:ring-purple-500/20', 'focus:border-purple-500',
+                'transition-all', 'outline-none', 'text-slate-700', 'font-medium', 'shadow-sm'
+            );
+        });
+
+        const classesContainerDiv = document.getElementById('classes-container');
+        const sectionsContainerDiv = document.getElementById('sections-container');
+        const subjectsContainerDiv = document.getElementById('subjects-container');
+
+        if (classesContainerDiv) {
+            classesContainerDiv.addEventListener('change', function (e) {
+                if (e.target.tagName === 'INPUT' && e.target.type === 'checkbox') {
+                    updateSectionsAndSubjects();
+                }
+            });
+        }
+
+        function updateSectionsAndSubjects() {
+            const checkedClasses = Array.from(classesContainerDiv.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
+
+            if (checkedClasses.length === 0) {
+                sectionsContainerDiv.innerHTML = '<div class="flex flex-col items-center justify-center h-20 text-slate-400"><i class="fas fa-list opacity-50 text-2xl mb-2"></i><p class="text-sm">Select classes first</p></div>';
+                subjectsContainerDiv.innerHTML = '<div class="flex flex-col items-center justify-center h-20 text-slate-400"><i class="fas fa-book-open opacity-50 text-2xl mb-2"></i><p class="text-sm">Select classes first</p></div>';
+                return;
+            }
+
+            // Show loading state
+            sectionsContainerDiv.innerHTML = '<div class="flex justify-center items-center h-20"><div class="animate-spin rounded-full h-6 w-6 border-b-2 border-emerald-500"></div></div>';
+            subjectsContainerDiv.innerHTML = '<div class="flex justify-center items-center h-20"><div class="animate-spin rounded-full h-6 w-6 border-b-2 border-pink-500"></div></div>';
+
+            const queryString = checkedClasses.map(id => `class_ids[]=${id}`).join('&');
+
+            // Fetch Sections
+            fetch(`/api/get-sections-multiple/?${queryString}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.length > 0) {
+                        let html = '<div class="checkbox-list space-y-2"><ul id="id_assigned_sections">';
+                        data.forEach((sec, idx) => {
+                            html += `<li><label for="id_assigned_sections_${idx}"><input type="checkbox" name="assigned_sections" value="${sec.id}" id="id_assigned_sections_${idx}"> ${sec.name}</label></li>`;
+                        });
+                        html += '</ul></div>';
+                        sectionsContainerDiv.innerHTML = html;
+                    } else {
+                        sectionsContainerDiv.innerHTML = '<p class="text-sm text-slate-500 font-medium italic p-2 bg-slate-50 rounded-lg">No sections found.</p>';
+                    }
+                });
+
+            // Fetch Subjects
+            fetch(`/api/get-subjects-multiple/?${queryString}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.length > 0) {
+                        let html = '<div class="checkbox-list space-y-2"><ul id="id_assigned_subjects">';
+                        data.forEach((sub, idx) => {
+                            html += `<li><label for="id_assigned_subjects_${idx}"><input type="checkbox" name="assigned_subjects" value="${sub.id}" id="id_assigned_subjects_${idx}"> ${sub.name}</label></li>`;
+                        });
+                        html += '</ul></div>';
+                        subjectsContainerDiv.innerHTML = html;
+                    } else {
+                        subjectsContainerDiv.innerHTML = '<p class="text-sm text-slate-500 font-medium italic p-2 bg-slate-50 rounded-lg">No subjects found.</p>';
+                    }
+                });
+        }
+
+        // Uncheck any pre-checked classes on page reload
+        const checkboxes = classesContainerDiv.querySelectorAll('input[type="checkbox"]');
+        checkboxes.forEach(cb => cb.checked = false);
+
+        // Make sure sections & subjects are empty on load (initial state)
+        sectionsContainerDiv.innerHTML = '<div class="flex flex-col items-center justify-center h-20 text-slate-400"><i class="fas fa-list opacity-50 text-2xl mb-2"></i><p class="text-sm">Select classes first</p></div>';
+        subjectsContainerDiv.innerHTML = '<div class="flex flex-col items-center justify-center h-20 text-slate-400"><i class="fas fa-book-open opacity-50 text-2xl mb-2"></i><p class="text-sm">Select classes first</p></div>';
+    });
+</script>
+{% endblock %}

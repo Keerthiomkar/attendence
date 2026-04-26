@@ -1,0 +1,440 @@
+﻿{% extends 'base.html' %}
+
+{% block title %}Manage Students{% endblock %}
+
+{% block content %}
+<div class="animate__animated animate__fadeIn">
+    <!-- Header -->
+    <div class="mb-8">
+        <a href="{% url 'admin_dashboard' %}"
+            class="inline-flex items-center text-indigo-600 hover:text-indigo-800 font-medium transition-colors mb-4 bg-indigo-50 hover:bg-indigo-100 px-4 py-2 rounded-lg">
+            <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+        </a>
+        <h2 class="text-3xl font-heading font-extrabold text-slate-800 flex items-center">
+            <div
+                class="w-12 h-12 bg-orange-100 text-orange-600 rounded-xl flex items-center justify-center mr-4 shadow-sm">
+                <i class="fas fa-user-graduate text-xl"></i>
+            </div>
+            Manage Students
+        </h2>
+    </div>
+
+    <!-- Add Student Form -->
+    <div
+        class="glass-panel rounded-3xl p-8 border border-white/60 shadow-xl shadow-orange-100 mb-10 relative overflow-hidden group">
+        <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-orange-400 to-amber-500"></div>
+        <h3 class="text-2xl font-heading font-bold text-slate-800 mb-6 flex items-center">
+            <div class="w-10 h-10 bg-orange-50 text-orange-600 rounded-lg flex items-center justify-center mr-3">
+                <i class="fas fa-user-plus"></i>
+            </div>
+            Add New Student
+        </h3>
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="add_student">
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Roll Number -->
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">Roll Number <span
+                            class="text-rose-500">*</span></label>
+                    <div class="input-wrapper">{{ student_form.roll_number }}</div>
+                    {% if student_form.roll_number.errors %}
+                    <p class="text-rose-500 text-xs mt-1 font-medium"><i class="fas fa-info-circle mr-1"></i>{{ student_form.roll_number.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                <!-- Student Name -->
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">Student Name <span
+                            class="text-rose-500">*</span></label>
+                    <div class="input-wrapper">{{ student_form.name }}</div>
+                    {% if student_form.name.errors %}
+                    <p class="text-rose-500 text-xs mt-1 font-medium"><i class="fas fa-info-circle mr-1"></i>{{ student_form.name.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                <!-- Section -->
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">Section <span
+                            class="text-rose-500">*</span></label>
+                    <div class="input-wrapper">{{ student_form.section }}</div>
+                    {% if student_form.section.errors %}
+                    <p class="text-rose-500 text-xs mt-1 font-medium"><i class="fas fa-info-circle mr-1"></i>{{ student_form.section.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                <!-- Email -->
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">Email</label>
+                    <div class="input-wrapper">{{ student_form.email }}</div>
+                    {% if student_form.email.errors %}
+                    <p class="text-rose-500 text-xs mt-1 font-medium"><i class="fas fa-info-circle mr-1"></i>{{ student_form.email.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                <!-- Phone -->
+                <div class="lg:col-span-2">
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">Phone Number</label>
+                    <div class="input-wrapper">{{ student_form.phone }}</div>
+                    {% if student_form.phone.errors %}
+                    <p class="text-rose-500 text-xs mt-1 font-medium"><i class="fas fa-info-circle mr-1"></i>{{ student_form.phone.errors.0 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="flex justify-end pt-4 border-t border-slate-100">
+                <button type="submit"
+                    class="px-8 py-3 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white rounded-xl shadow-lg shadow-orange-500/30 font-bold flex items-center transition-all hover:-translate-y-0.5">
+                    <i class="fas fa-save mr-2"></i>Add Student
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Students List & Filters -->
+    <div class="glass-panel rounded-3xl p-8 border border-white/60 shadow-lg relative overflow-hidden">
+
+        <!-- Header Actions -->
+        <div
+            class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 border-b border-slate-100 pb-6">
+            <h3 class="text-2xl font-heading font-bold text-slate-800 flex items-center">
+                <i class="fas fa-list text-orange-500 mr-3"></i>Students Directory
+                <span
+                    class="ml-3 bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full text-sm font-bold shadow-sm border border-indigo-200">
+                    {{ students.count }} student{{ students.count|pluralize }}
+                </span>
+            </h3>
+
+            <div class="flex flex-wrap items-center gap-3">
+                <a href="{% url 'export_students_excel' %}?class_filter={{ class_filter }}&section_filter={{ section_filter }}"
+                    class="bg-white border border-emerald-200 text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800 px-4 py-2 rounded-xl transition-colors text-sm font-bold flex items-center shadow-sm">
+                    <i class="fas fa-file-excel mr-2 text-emerald-500"></i>Export Excel
+                </a>
+                <a href="{% url 'export_students_pdf' %}?class_filter={{ class_filter }}&section_filter={{ section_filter }}"
+                    class="bg-white border border-rose-200 text-rose-700 hover:bg-rose-50 hover:text-rose-800 px-4 py-2 rounded-xl transition-colors text-sm font-bold flex items-center shadow-sm">
+                    <i class="fas fa-file-pdf mr-2 text-rose-500"></i>Export PDF
+                </a>
+            </div>
+        </div>
+
+        <!-- Filter Form -->
+        <div class="mb-6 bg-slate-50/70 backdrop-blur-sm p-6 rounded-2xl border border-slate-200 shadow-inner">
+            <form method="get" class="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-2 tracking-wide uppercase">
+                        <i class="fas fa-school mr-1 text-indigo-400"></i> Class/Year
+                    </label>
+                    <select name="class_filter" id="classFilter"
+                        class="w-full px-4 py-3 border border-slate-300 rounded-xl bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-medium text-slate-700 outline-none shadow-sm">
+                        <option value="">All Classes</option>
+                        {% for class in classes %}
+                        <option value="{{ class.id }}">
+                            {{ class.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-2 tracking-wide uppercase">
+                        <i class="fas fa-users mr-1 text-emerald-400"></i> Section
+                    </label>
+                    <select name="section_filter" id="sectionFilter"
+                        class="w-full px-4 py-3 border border-slate-300 rounded-xl bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-medium text-slate-700 outline-none shadow-sm">
+                        <option value="">All Sections</option>
+                        {% for section in sections %}
+                        <option value="{{ section.id }}">
+                            {{ section.class_ref.name }} - {{ section.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="flex gap-3">
+                    <button type="submit"
+                        class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-3 rounded-xl font-bold transition duration-300 shadow-md shadow-indigo-500/30 flex items-center justify-center">
+                        <i class="fas fa-filter mr-2"></i>Filter
+                    </button>
+                    <a href="{% url 'manage_students' %}" title="Reset Filters"
+                        class="bg-white border border-slate-300 hover:bg-slate-100 text-slate-600 px-4 py-3 rounded-xl transition duration-300 flex items-center justify-center shadow-sm">
+                        <i class="fas fa-redo-alt"></i>
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        {% if students %}
+        <div class="overflow-x-auto rounded-xl border border-slate-200 shadow-sm">
+            <table class="modern-table min-w-full bg-white whitespace-nowrap">
+                <thead class="bg-slate-50/80 backdrop-blur-sm border-b border-slate-200">
+                    <tr>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">
+                            Student Info</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Class
+                            & Section</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">
+                            Contact Details</th>
+                        <th class="px-6 py-4 text-right text-xs font-bold text-slate-500 uppercase tracking-wider">
+                            Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 text-sm">
+                    {% for student in students %}
+                    <tr class="hover:bg-indigo-50/30 transition duration-200 group">
+                        <td class="px-6 py-4">
+                            <div class="flex items-center">
+                                <div
+                                    class="w-10 h-10 rounded-full bg-gradient-to-br from-orange-100 to-amber-100 text-orange-600 flex items-center justify-center mr-3 font-bold border border-white shadow-sm group-hover:scale-110 transition-transform">
+                                    {{ student.name|make_list|first|upper }}
+                                </div>
+                                <div>
+                                    <p class="font-bold text-slate-800 text-base">{{ student.name }}</p>
+                                    <p
+                                        class="text-xs text-slate-500 font-medium font-mono bg-slate-100 inline-block px-1.5 py-0.5 rounded mt-0.5">
+                                        ID: {{ student.roll_number }}</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <p class="font-semibold text-slate-700">{{ student.section.class_ref.name }}</p>
+                            <p class="text-xs text-slate-500 mt-0.5"><span
+                                    class="bg-emerald-50 text-emerald-700 border border-emerald-100 px-2 py-0.5 rounded-md">Sec:
+                                    {{ student.section.name }}</span></p>
+                        </td>
+                        <td class="px-6 py-4 text-slate-600">
+                            {% if student.email %}
+                            <p class="text-sm flex items-center"><i
+                                    class="fas fa-envelope text-slate-400 mr-2 w-4"></i>{{ student.email }}</p>
+                            {% endif %}
+                            {% if student.phone %}
+                            <p class="text-sm flex items-center mt-1"><i
+                                    class="fas fa-phone-alt text-slate-400 mr-2 w-4"></i>{{ student.phone }}</p>
+                            {% endif %}
+                            {% if not student.email and not student.phone %}
+                            <span class="text-slate-400 italic text-sm">No contact info</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 text-right">
+                            <div class="flex justify-end gap-2">
+                                <button type="button"
+                                    onclick="openEditModal('{{ student.id }}', '{{ student.roll_number|escapejs }}', '{{ student.name|escapejs }}', '{{ student.section.id }}', '{% if student.email %}{{ student.email|escapejs }}{% endif %}', '{% if student.phone %}{{ student.phone|escapejs }}{% endif %}')"
+                                    class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white flex items-center justify-center transition-colors shadow-sm"
+                                    title="Edit Student">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <form method="post"
+                                    onsubmit="return confirm('Are you sure you want to delete this student?');"
+                                    class="inline-block">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="delete_student">
+                                    <input type="hidden" name="student_id" value="{{ student.id }}">
+                                    <button type="submit"
+                                        class="w-8 h-8 rounded-lg bg-rose-50 text-rose-500 hover:bg-rose-500 hover:text-white flex items-center justify-center transition-colors shadow-sm"
+                                        title="Delete Student">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-16 bg-slate-50 rounded-2xl border border-dashed border-slate-300">
+            <div
+                class="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm text-slate-300">
+                <i class="fas fa-user-graduate text-3xl"></i>
+            </div>
+            <p class="text-slate-500 text-lg font-medium">No students found</p>
+            <p class="text-slate-400 text-sm mt-1">Adjust filters or add a new student above</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Edit Student Modal -->
+<div id="editModal"
+    class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 transition-opacity opacity-0 duration-300"
+    style="opacity: 0;">
+    <div id="editModalContent"
+        class="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-2xl mx-4 transform transition-all scale-95 duration-300">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-2xl font-heading font-bold text-slate-800 flex items-center">
+                <div class="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-lg flex items-center justify-center mr-3">
+                    <i class="fas fa-user-edit"></i>
+                </div>
+                Edit Student Details
+            </h3>
+            <button type="button" onclick="closeEditModal()"
+                class="text-slate-400 hover:text-slate-600 transition-colors bg-slate-50 hover:bg-slate-100 rounded-full w-8 h-8 flex items-center justify-center">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="edit_student">
+            <input type="hidden" name="student_id" id="edit_student_id">
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">Roll Number <span
+                            class="text-rose-500">*</span></label>
+                    <input type="text" name="roll_number" id="edit_roll_number" required
+                        class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none font-medium text-slate-700">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">Student Name <span
+                            class="text-rose-500">*</span></label>
+                    <input type="text" name="name" id="edit_name" required
+                        class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none font-medium text-slate-700">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">Section <span
+                            class="text-rose-500">*</span></label>
+                    <select name="section" id="edit_section" required
+                        class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none font-medium text-slate-700">
+                        <option value="">Select a section</option>
+                        {% for section in sections %}
+                        <option value="{{ section.id }}">{{ section.class_ref.name }} - {{ section.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">Email</label>
+                    <input type="email" name="email" id="edit_email"
+                        class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none font-medium text-slate-700">
+                </div>
+
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">Phone Number</label>
+                    <input type="text" name="phone" id="edit_phone"
+                        class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none font-medium text-slate-700">
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-3 pt-6 border-t border-slate-100">
+                <button type="button" onclick="closeEditModal()"
+                    class="px-6 py-2.5 border border-slate-200 rounded-xl text-slate-600 font-bold hover:bg-slate-50 transition duration-300">
+                    Cancel
+                </button>
+                <button type="submit"
+                    class="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition duration-300 shadow-lg shadow-indigo-500/30">
+                    Save Changes
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Tailwind styling for django forms
+        const inputs = document.querySelectorAll('.input-wrapper input, .input-wrapper select');
+        inputs.forEach(input => {
+            input.classList.add(
+                'w-full', 'px-4', 'py-3', 'rounded-xl', 'border', 'border-slate-200',
+                'bg-white/80', 'focus:bg-white', 'focus:ring-2', 'focus:ring-orange-500/20', 'focus:border-orange-500',
+                'transition-all', 'outline-none', 'text-slate-700', 'font-medium'
+            );
+        });
+
+        const classFilter = document.getElementById('classFilter');
+        const sectionFilter = document.getElementById('sectionFilter');
+
+        // Restore previously selected class
+        const currentClassFilter = '{{ class_filter }}';
+        if (currentClassFilter) {
+            classFilter.value = currentClassFilter;
+        }
+
+        // Store all section options
+        const allSections = Array.from(sectionFilter.options).slice(1);
+
+        // Function to filter sections based on selected class
+        function filterSections() {
+            const selectedClassId = classFilter.value;
+
+            // Clear current sections (except "All Sections")
+            sectionFilter.innerHTML = '<option value="">All Sections</option>';
+
+            if (!selectedClassId) {
+                // If no class selected, show all sections
+                allSections.forEach(option => {
+                    sectionFilter.appendChild(option.cloneNode(true));
+                });
+            } else {
+                // Show only sections for the selected class
+                const selectedClassName = classFilter.options[classFilter.selectedIndex].textContent.trim();
+
+                allSections.forEach(option => {
+                    const optionText = option.textContent.trim();
+
+                    // Check if section belongs to selected class
+                    if (optionText.startsWith(selectedClassName + ' -')) {
+                        sectionFilter.appendChild(option.cloneNode(true));
+                    }
+                });
+            }
+
+            // Restore previously selected section if it's still in the filtered list
+            const currentSectionFilter = '{{ section_filter }}';
+            if (currentSectionFilter) {
+                sectionFilter.value = currentSectionFilter;
+            }
+        }
+
+        // Filter sections when class changes
+        classFilter.addEventListener('change', filterSections);
+
+        // Initial filter on page load
+        filterSections();
+    });
+
+    function openEditModal(studentId, rollNumber, name, sectionId, email, phone) {
+        document.getElementById('edit_student_id').value = studentId;
+        document.getElementById('edit_roll_number').value = rollNumber;
+        document.getElementById('edit_name').value = name;
+        document.getElementById('edit_section').value = sectionId;
+        document.getElementById('edit_email').value = email;
+        document.getElementById('edit_phone').value = phone;
+
+        const modal = document.getElementById('editModal');
+        const content = document.getElementById('editModalContent');
+
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+
+        // Trigger animations
+        setTimeout(() => {
+            modal.style.opacity = '1';
+            content.classList.remove('scale-95');
+            content.classList.add('scale-100');
+        }, 10);
+    }
+
+    function closeEditModal() {
+        const modal = document.getElementById('editModal');
+        const content = document.getElementById('editModalContent');
+
+        // Reverse animations
+        modal.style.opacity = '0';
+        content.classList.remove('scale-100');
+        content.classList.add('scale-95');
+
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }, 300);
+    }
+
+    // Close modal when clicking outside
+    document.getElementById('editModal').addEventListener('click', function (e) {
+        if (e.target === this) {
+            closeEditModal();
+        }
+    });
+</script>
+{% endblock %}

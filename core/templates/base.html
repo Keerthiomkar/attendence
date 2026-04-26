@@ -1,0 +1,168 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Student Attendance System{% endblock %}</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Tailwind Configuration -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        heading: ['Outfit', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: '#4F46E5',
+                        secondary: '#ec4899',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Animate.css for Animations -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body
+    class="bg-slate-50 relative min-h-screen flex flex-col font-sans text-slate-800 selection:bg-indigo-200 selection:text-indigo-900">
+
+    <!-- Background Decoration Elements (Optional but adds premium feel) -->
+    <div class="fixed top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
+        <div
+            class="absolute -top-[10%] -right-[5%] w-96 h-96 bg-indigo-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse">
+        </div>
+        <div class="absolute top-[20%] -left-[10%] w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse"
+            style="animation-delay: 2s;"></div>
+    </div>
+
+    {% if user.is_authenticated %}
+    <!-- Navigation Bar -->
+    <nav class="glass-navbar sticky top-0 z-50">
+        <div class="container mx-auto px-4 md:px-8">
+            <div class="flex items-center justify-between py-4">
+                <div class="flex items-center space-x-4">
+                    <div class="w-10 h-10 rounded-xl gradient-bg flex items-center justify-center text-white shadow-lg">
+                        <i class="fas fa-graduation-cap text-xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-heading font-bold text-slate-800 leading-tight">Attendance System</h1>
+                        <p class="text-xs text-indigo-600 font-semibold tracking-wider uppercase">Portal</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center space-x-6">
+                    <span
+                        class="hidden md:flex items-center bg-white px-4 py-2 rounded-full shadow-sm border border-slate-100">
+                        <div
+                            class="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center mr-3 font-bold">
+                            {{ user.get_full_name|default:user.username|make_list|first|upper }}
+                        </div>
+                        <span class="font-medium text-slate-700 mr-2">
+                            {{ user.get_full_name|default:user.username }}
+                        </span>
+                        <span
+                            class="px-2 py-0.5 bg-indigo-50 text-indigo-600 rounded text-xs font-bold uppercase tracking-wider">
+                            {{ user.get_role_display }}
+                        </span>
+                    </span>
+                    <a href="{% url 'logout' %}"
+                        class="group flex items-center justify-center bg-rose-50 hover:bg-rose-500 text-rose-600 hover:text-white px-4 py-2 rounded-xl transition-all duration-300 shadow-sm hover:shadow-md border border-rose-100 font-medium">
+                        <i class="fas fa-sign-out-alt mr-2 group-hover:-rotate-12 transition-transform"></i>Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+    {% endif %}
+
+    <!-- Messages -->
+    {% if messages %}
+    <div
+        class="container mx-auto px-4 md:px-8 mt-6 z-40 fixed top-20 left-0 right-0 max-w-xl mx-auto pointer-events-none">
+        {% for message in messages %}
+        <div
+            class="pointer-events-auto animate__animated animate__bounceInDown mb-4 glass-panel rounded-xl shadow-xl overflow-hidden border-0">
+            <div class="flex items-center p-4 
+            {% if message.tags == 'error' %}bg-rose-50/80 border-l-4 border-rose-500
+            {% elif message.tags == 'success' %}bg-emerald-50/80 border-l-4 border-emerald-500
+            {% elif message.tags == 'warning' %}bg-amber-50/80 border-l-4 border-amber-500
+            {% else %}bg-indigo-50/80 border-l-4 border-indigo-500{% endif %}">
+                <div class="flex-shrink-0 mr-3">
+                    <i class="fas text-xl
+                        {% if message.tags == 'error' %}fa-exclamation-circle text-rose-500
+                        {% elif message.tags == 'success' %}fa-check-circle text-emerald-500
+                        {% elif message.tags == 'warning' %}fa-exclamation-triangle text-amber-500
+                        {% else %}fa-info-circle text-indigo-500{% endif %}">
+                    </i>
+                </div>
+                <p class="text-sm font-medium 
+                    {% if message.tags == 'error' %}text-rose-800
+                    {% elif message.tags == 'success' %}text-emerald-800
+                    {% elif message.tags == 'warning' %}text-amber-800
+                    {% else %}text-indigo-800{% endif %}">{{ message }}</p>
+                <button
+                    onclick="this.parentElement.parentElement.classList.add('animate__fadeOutUp'); setTimeout(() => this.parentElement.parentElement.remove(), 500);"
+                    class="ml-auto text-slate-400 hover:text-slate-600 focus:outline-none">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Main Content -->
+    <main class="flex-grow animate__animated animate__fadeIn">
+        <div class="container mx-auto px-4 md:px-8 py-8">
+            {% block content %}
+            {% endblock %}
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="glass-dark text-slate-300 mt-auto py-8">
+        <div class="container mx-auto px-4 text-center">
+            <div class="flex justify-center items-center space-x-2 mb-4">
+                <i class="fas fa-graduation-cap text-indigo-400 text-2xl"></i>
+                <span class="text-xl font-heading font-bold text-white">Attendance System</span>
+            </div>
+            <p class="text-sm text-slate-400">&copy; {% now "Y" %} Student Attendance Management System. Built with
+                excellence.</p>
+        </div>
+    </footer>
+
+    <!-- Initialize general scripts -->
+    <script>
+        // Auto-hide messages after 5 seconds
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                const messages = document.querySelectorAll('.animate__bounceInDown');
+                messages.forEach(msg => {
+                    msg.classList.remove('animate__bounceInDown');
+                    msg.classList.add('animate__fadeOutUp');
+                    setTimeout(() => msg.remove(), 1000);
+                });
+            }, 5000);
+        });
+    </script>
+
+    {% block extra_js %}
+    {% endblock %}
+</body>
+
+</html>

@@ -1,0 +1,301 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Manager Dashboard - Absentee Report{% endblock %}
+
+{% block content %}
+<div class="animate__animated animate__fadeIn">
+    <!-- Header Section -->
+    <div class="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div>
+            <h2 class="text-4xl font-heading font-extrabold text-slate-800 mb-2 tracking-tight">
+                <i class="fas fa-clipboard-list mr-3 text-indigo-500"></i>Absentee Report
+            </h2>
+            <p class="text-slate-500 font-medium text-lg">
+                Good to see you again, {{ user.get_full_name|default:user.username }}! Here is the absentee report.
+            </p>
+        </div>
+        <div class="text-right flex flex-col sm:flex-row items-end sm:items-center gap-4">
+            <div class="flex flex-col items-end gap-2">
+                <p class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-1">Select Date</p>
+                <form method="get" class="flex gap-2">
+                    <input type="date" name="date" value="{{ selected_date_str }}" max="{% now 'Y-m-d' %}"
+                        onchange="this.form.submit()"
+                        class="px-4 py-2 rounded-xl border border-slate-200 bg-white shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none font-medium text-slate-700">
+                </form>
+            </div>
+
+            <a href="{% url 'export_manager_report_excel' %}?date={{ selected_date_str }}"
+                class="mt-4 sm:mt-0 flex items-center gap-2 px-5 py-2.5 bg-white border border-slate-200 shadow-sm rounded-xl text-slate-700 font-bold hover:bg-slate-50 hover:text-indigo-600 hover:border-indigo-200 transition-all duration-200 relative group">
+                <i class="fas fa-file-excel text-emerald-600 group-hover:scale-110 transition-transform"></i>
+                Download Report
+            </a>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div
+            class="glass-card bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-3xl shadow-lg p-6 text-white relative overflow-hidden group">
+            <div
+                class="absolute -right-4 -top-4 w-32 h-32 bg-white opacity-10 rounded-full group-hover:scale-150 transition-transform duration-700">
+            </div>
+            <div class="flex items-center justify-between relative z-10">
+                <div>
+                    <p class="text-indigo-100 text-sm font-semibold tracking-wider uppercase mb-1">Selected Date</p>
+                    <h3 class="text-2xl font-heading font-bold">{{ selected_date|date:"l, F j, Y" }}</h3>
+                </div>
+                <div
+                    class="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/20 shadow-inner group-hover:bg-white/30 transition-colors">
+                    <i class="fas fa-calendar-day text-3xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <div
+            class="glass-card bg-gradient-to-br from-rose-400 to-rose-600 rounded-3xl shadow-lg p-6 text-white relative overflow-hidden group">
+            <div
+                class="absolute -right-4 -top-4 w-32 h-32 bg-white opacity-10 rounded-full group-hover:scale-150 transition-transform duration-700">
+            </div>
+            <div class="flex items-center justify-between relative z-10">
+                <div>
+                    <p class="text-rose-100 text-sm font-semibold tracking-wider uppercase mb-1">Total Absent Students
+                    </p>
+                    <h3 class="text-3xl font-heading font-bold">{{ total_absent }}</h3>
+                </div>
+                <div
+                    class="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/20 shadow-inner group-hover:bg-white/30 transition-colors">
+                    <i class="fas fa-user-times text-3xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <div
+            class="glass-card bg-gradient-to-br from-amber-400 to-amber-600 rounded-3xl shadow-lg p-6 text-white relative overflow-hidden group">
+            <div
+                class="absolute -right-4 -top-4 w-32 h-32 bg-white opacity-10 rounded-full group-hover:scale-150 transition-transform duration-700">
+            </div>
+            <div class="flex items-center justify-between relative z-10">
+                <div>
+                    <p class="text-amber-100 text-sm font-semibold tracking-wider uppercase mb-1">Missing Attendance
+                    </p>
+                    <h3 class="text-3xl font-heading font-bold">{{ total_missing }} <span class="text-lg font-medium">Subjects</span></h3>
+                </div>
+                <div
+                    class="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/20 shadow-inner group-hover:bg-white/30 transition-colors">
+                    <i class="fas fa-exclamation-triangle text-3xl"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Report Section -->
+    <div class="mb-6">
+        <h3 class="text-2xl font-heading font-bold text-slate-800 flex items-center">
+            <i class="fas fa-clipboard-user text-rose-500 mr-3"></i> Absentees List
+        </h3>
+    </div>
+
+    <div class="space-y-8">
+        {% for class_name, sections in grouped_data.items %}
+        <div class="glass-panel rounded-3xl p-6 border border-white/60 shadow-md">
+            <!-- Class Header -->
+            <div class="mb-6 flex items-center justify-between">
+                <div class="flex items-center">
+                    <div
+                        class="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-xl flex items-center justify-center mr-4 shadow-sm">
+                        <i class="fas fa-school text-xl"></i>
+                    </div>
+                    <h3 class="text-2xl font-heading font-bold text-slate-800">{{ class_name }}</h3>
+                </div>
+            </div>
+
+            <div class="space-y-6 pl-4 md:pl-8 border-l-2 border-indigo-100 ml-6">
+                {% for section_name, section_data in sections.items %}
+                <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                    <!-- Section Header -->
+                    <div class="bg-slate-50 border-b border-slate-100 px-6 py-4 flex justify-between items-center">
+                        <h4 class="text-lg font-heading font-bold text-slate-700 flex items-center">
+                            <i class="fas fa-users text-slate-400 mr-2"></i> Section {{ section_name }}
+                        </h4>
+                        <div class="flex gap-2">
+                            {% if section_data.students %}
+                            <span
+                                class="px-3 py-1 bg-rose-50 text-rose-600 rounded-lg text-xs font-bold uppercase tracking-wider">
+                                {{ section_data.students|length }} Absent
+                            </span>
+                            {% else %}
+                            <span
+                                class="px-3 py-1 bg-emerald-50 text-emerald-600 rounded-lg text-xs font-bold uppercase tracking-wider">
+                                0 Absent
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="divide-y divide-slate-100">
+                        <!-- Missing Attendance Warnings -->
+                        {% if section_data.missing_attendance %}
+                        <div class="p-6 bg-amber-50/50">
+                            {% for missing in section_data.missing_attendance %}
+                            <div class="flex items-center gap-3 text-amber-700 {% if not forloop.first %}mt-3{% endif %}">
+                                <i class="fas fa-exclamation-triangle text-amber-500"></i>
+                                <div class="flex-1">
+                                    <span class="font-bold">{{ missing.subject }}</span>: Attendance is not marked
+                                    <span class="text-amber-600 text-sm ml-2">- {{ missing.teacher }}</span>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
+                        <!-- Perfect State -->
+                        {% if not section_data.missing_attendance and not section_data.students %}
+                        <div class="p-8 text-center bg-emerald-50/30">
+                            <i class="fas fa-check-circle text-4xl text-emerald-400 mb-3"></i>
+                            <p class="text-emerald-700 font-medium">All attendance marked. No absentees present.</p>
+                        </div>
+                        {% endif %}
+
+                        <!-- Students List -->
+                        {% for student_id, data in section_data.students.items %}
+                        <div class="p-6 transition-all hover:bg-slate-50">
+                            <div class="flex flex-col md:flex-row md:items-start gap-4 justify-between">
+                                <!-- Student Info -->
+                                <div class="flex items-center gap-4 w-full md:w-1/3">
+                                    <div
+                                        class="w-12 h-12 rounded-full bg-gradient-to-br from-slate-100 to-slate-200 text-slate-600 flex items-center justify-center shadow-inner font-bold text-lg flex-shrink-0">
+                                        {{ data.student.name|make_list|first|upper }}
+                                    </div>
+                                    <div>
+                                        <p class="font-bold text-slate-800 text-lg">{{ data.student.name }}</p>
+                                        <div class="flex items-center gap-3 mt-1 text-sm font-medium text-slate-500">
+                                            <span class="flex items-center gap-1">
+                                                <i class="fas fa-id-card text-slate-400"></i> {{ data.student.roll_number }}
+                                            </span>
+                                            {% if data.student.phone %}
+                                            <span class="flex items-center gap-1">
+                                                <i class="fas fa-phone-alt text-slate-400"></i> {{ data.student.phone }}
+                                            </span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Meta Context info -->
+                                <div class="hidden lg:flex flex-col gap-2 w-1/4 text-sm">
+                                    {% for r in data.records %}
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-6 flex justify-center text-indigo-400"><i
+                                                class="fas fa-book"></i></span>
+                                        <span class="text-slate-600 font-medium">{{ r.attendance.subject.name }}</span>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-6 flex justify-center text-slate-400"><i
+                                                class="fas fa-chalkboard-teacher"></i></span>
+                                        <span class="text-slate-500">{{ r.attendance.teacher.user.get_full_name|default:r.attendance.teacher.user.username }}</span>
+                                    </div>
+                                    {% if not forloop.last %}<div class="border-b border-slate-100 my-1"></div>{% endif %}
+                                    {% endfor %}
+                                </div>
+
+                                <!-- Remarks Field -->
+                                <div class="w-full md:w-5/12">
+                                    <label
+                                        class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Manager
+                                        Remarks</label>
+                                    <div class="relative group">
+                                        <textarea id="remarks_{{ student_id }}" rows="2"
+                                            class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none font-medium text-slate-700 resize-none pr-12 focus:bg-white"
+                                            placeholder="Add remarks here...">{{ data.manager_remarks }}</textarea>
+                                        <button onclick="saveRemark('{{ student_id }}')"
+                                            class="absolute right-2 bottom-2 w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white flex items-center justify-center transition-colors shadow-sm"
+                                            title="Save Remarks">
+                                            <i class="fas fa-save" id="icon_{{ student_id }}"></i>
+                                        </button>
+                                    </div>
+                                    <p id="status_{{ student_id }}"
+                                        class="text-xs font-medium mt-1 text-emerald-600 opacity-0 transition-opacity">
+                                        Saved successfully</p>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function saveRemark(studentId) {
+        const remarks = document.getElementById(`remarks_${studentId}`).value;
+        const icon = document.getElementById(`icon_${studentId}`);
+        const statusText = document.getElementById(`status_${studentId}`);
+        const btn = icon.parentElement;
+
+        // Show loading state
+        icon.className = 'fas fa-spinner fa-spin';
+        btn.classList.add('opacity-70', 'cursor-not-allowed');
+
+        fetch("{% url 'save_manager_remarks' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}',
+            },
+            body: JSON.stringify({
+                student_id: studentId,
+                date: '{{ selected_date_str }}',
+                remarks: remarks
+            })
+        })
+            .then(response => response.json())
+            .then(data => {
+                // Restore button
+                btn.classList.remove('opacity-70', 'cursor-not-allowed');
+
+                if (data.success) {
+                    icon.className = 'fas fa-check';
+                    statusText.classList.remove('opacity-0', 'text-rose-600');
+                    statusText.classList.add('text-emerald-600');
+                    statusText.textContent = 'Saved successfully';
+
+                    // Reset icon after 2 seconds
+                    setTimeout(() => {
+                        icon.className = 'fas fa-save';
+                        statusText.classList.add('opacity-0');
+                    }, 2000);
+                } else {
+                    icon.className = 'fas fa-save';
+                    statusText.classList.remove('opacity-0', 'text-emerald-600');
+                    statusText.classList.add('text-rose-600');
+                    statusText.textContent = 'Failed to save';
+
+                    setTimeout(() => {
+                        statusText.classList.add('opacity-0');
+                    }, 3000);
+                    alert('Failed to save remarks: ' + data.message);
+                }
+            })
+            .catch((error) => {
+                icon.className = 'fas fa-save';
+                btn.classList.remove('opacity-70', 'cursor-not-allowed');
+                console.error('Error:', error);
+
+                statusText.classList.remove('opacity-0', 'text-emerald-600');
+                statusText.classList.add('text-rose-600');
+                statusText.textContent = 'Network error';
+
+                setTimeout(() => {
+                    statusText.classList.add('opacity-0');
+                }, 3000);
+            });
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,560 @@
+{% extends 'base.html' %}
+
+{% block title %}Attendance Report — Admin{% endblock %}
+
+{% block content %}
+<div class="animate__animated animate__fadeIn">
+
+    <!-- Page Header -->
+    <div class="mb-8">
+        <a href="{% url 'admin_dashboard' %}"
+            class="inline-flex items-center text-indigo-600 hover:text-indigo-800 font-medium transition-colors mb-4 bg-indigo-50 hover:bg-indigo-100 px-4 py-2 rounded-lg">
+            <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+        </a>
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+                <h2 class="text-3xl font-heading font-extrabold text-slate-800 flex items-center">
+                    <div
+                        class="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-xl flex items-center justify-center mr-4 shadow-sm">
+                        <i class="fas fa-chart-bar text-xl"></i>
+                    </div>
+                    Attendance Report
+                </h2>
+                <p class="text-slate-500 mt-2 font-medium ml-16">Generate a student-wise attendance summary for any date
+                    range.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Card -->
+    <div
+        class="glass-panel rounded-3xl p-8 border border-white/60 shadow-xl shadow-indigo-100 mb-10 relative overflow-hidden group">
+        <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-indigo-500"></div>
+        <h3 class="text-xl font-heading font-bold text-slate-800 mb-6 flex items-center">
+            <div class="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-lg flex items-center justify-center mr-3">
+                <i class="fas fa-filter"></i>
+            </div>
+            Report Configuration
+        </h3>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-6 items-end border-b border-slate-100 pb-8 mb-4">
+            <!-- Class -->
+            <div>
+                <label class="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide flex items-center">
+                    <i class="fas fa-school text-indigo-400 mr-2"></i>Class
+                </label>
+                <select id="classSelect"
+                    class="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-medium text-slate-700 outline-none shadow-sm cursor-pointer">
+                    <option value="">— Select Class —</option>
+                    {% for cls in classes %}
+                    <option value="{{ cls.id }}">{{ cls.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Section -->
+            <div>
+                <label class="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide flex items-center">
+                    <i class="fas fa-layer-group text-emerald-400 mr-2"></i>Section
+                </label>
+                <select id="sectionSelect" disabled
+                    class="w-full px-4 py-3 border border-slate-200 rounded-xl bg-slate-50 focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all font-medium text-slate-700 outline-none shadow-sm cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed">
+                    <option value="">— Select Section —</option>
+                </select>
+            </div>
+
+            <!-- Subject -->
+            <div>
+                <label class="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide flex items-center">
+                    <i class="fas fa-book text-pink-400 mr-2"></i>Subject
+                </label>
+                <select id="subjectSelect" disabled
+                    class="w-full px-4 py-3 border border-slate-200 rounded-xl bg-slate-50 focus:bg-white focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 transition-all font-medium text-slate-700 outline-none shadow-sm cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed">
+                    <option value="">— Select Subject —</option>
+                </select>
+            </div>
+
+            <!-- Start Date -->
+            <div>
+                <label class="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide flex items-center">
+                    <i class="fas fa-calendar-alt text-amber-400 mr-2"></i>Start Date
+                </label>
+                <input type="date" id="startDate"
+                    class="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all font-medium text-slate-700 outline-none shadow-sm">
+            </div>
+
+            <!-- End Date -->
+            <div>
+                <label class="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide flex items-center">
+                    <i class="fas fa-calendar-check text-rose-400 mr-2"></i>End Date
+                </label>
+                <input type="date" id="endDate"
+                    class="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all font-medium text-slate-700 outline-none shadow-sm">
+            </div>
+        </div>
+
+        <!-- Generate Button -->
+        <div class="flex justify-end pt-2">
+            <button id="generateBtn" disabled
+                class="bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 disabled:text-slate-500 text-white font-bold px-8 py-3 rounded-xl transition-all shadow-lg shadow-indigo-500/30 flex items-center cursor-pointer disabled:cursor-not-allowed disabled:shadow-none translate-y-0 active:translate-y-0.5">
+                <i class="fas fa-bolt mr-2 text-yellow-300"></i> Generate Insight
+            </button>
+        </div>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div id="loadingSpinner" class="hidden py-16 text-center animate__animated animate__fadeIn">
+        <div class="relative w-20 h-20 mx-auto mb-6">
+            <div class="absolute inset-0 rounded-full border-4 border-indigo-100"></div>
+            <div class="absolute inset-0 rounded-full border-4 border-indigo-600 border-t-transparent animate-spin">
+            </div>
+            <div class="absolute inset-0 flex items-center justify-center text-indigo-600">
+                <i class="fas fa-chart-pie"></i>
+            </div>
+        </div>
+        <h3 class="text-xl font-heading font-bold text-slate-800">Compiling Report Data...</h3>
+        <p class="text-slate-500 mt-2">Please wait while we calculate the attendance metrics.</p>
+    </div>
+
+    <!-- Error Banner -->
+    <div id="errorBanner"
+        class="hidden animate__animated animate__headShake bg-rose-50 border border-rose-200 text-rose-700 p-5 rounded-2xl mb-8 shadow-sm flex items-center">
+        <div class="w-10 h-10 rounded-full bg-rose-100 flex items-center justify-center mr-4 shrink-0 text-rose-500">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <div>
+            <h4 class="font-bold text-rose-800">Error Generating Report</h4>
+            <span id="errorMsg" class="text-sm font-medium mt-1 inline-block"></span>
+        </div>
+        <button onclick="hideError()" class="ml-auto text-rose-400 hover:text-rose-600 p-2"><i
+                class="fas fa-times"></i></button>
+    </div>
+
+    <!-- Report Output -->
+    <div id="reportOutput" class="hidden animate__animated animate__fadeInUp">
+
+        <!-- Info Toolbar -->
+        <div class="flex flex-col md:flex-row items-center justify-between mb-8 gap-4 px-2">
+            <!-- Range Label -->
+            <div id="rangeLabel"
+                class="inline-flex items-center px-4 py-2 bg-indigo-50 text-indigo-700 rounded-xl font-medium text-sm border border-indigo-100 shadow-sm">
+                <!-- Injected via JS -->
+            </div>
+
+            <div class="flex gap-3">
+                <button id="editAttendanceBtn"
+                    class="hidden flex-shrink-0 bg-amber-500 hover:bg-amber-600 text-white font-bold px-5 py-2.5 rounded-xl transition-all shadow-md shadow-amber-500/20 items-center transform hover:-translate-y-0.5">
+                    <i class="fas fa-edit mr-2 bg-white/20 p-1.5 rounded-lg"></i> Edit Attendance
+                </button>
+                <button id="exportBtn"
+                    class="flex-shrink-0 bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-5 py-2.5 rounded-xl transition-all shadow-md shadow-emerald-500/20 flex items-center transform hover:-translate-y-0.5">
+                    <i class="fas fa-file-excel mr-2 bg-white/20 p-1.5 rounded-lg"></i> Export to CSV
+                </button>
+            </div>
+        </div>
+
+        <!-- Summary Stats -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-8" id="summaryCards"></div>
+
+        <!-- Table -->
+        <div class="glass-panel rounded-3xl p-8 border border-white/60 shadow-lg relative overflow-hidden">
+            <div class="flex flex-col md:flex-row items-center justify-between mb-6 pb-4 border-b border-slate-100">
+                <h3 class="text-2xl font-heading font-bold text-slate-800 flex items-center mb-4 md:mb-0">
+                    <i class="fas fa-list text-indigo-500 mr-3"></i>Student Details
+                </h3>
+
+                <!-- Search within table -->
+                <div class="relative w-full md:w-72">
+                    <div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+                        <i class="fas fa-search text-slate-400"></i>
+                    </div>
+                    <input type="text" id="tableSearch" placeholder="Search by name or roll..."
+                        class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all shadow-sm">
+                </div>
+            </div>
+
+            <div class="overflow-x-auto rounded-xl border border-slate-200 shadow-sm">
+                <table class="modern-table min-w-full bg-white whitespace-nowrap">
+                    <thead class="bg-slate-50/80 backdrop-blur-sm border-b border-slate-200">
+                        <tr>
+                            <th
+                                class="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider w-16">
+                                #</th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">
+                                Student Info</th>
+                            <th class="px-6 py-4 text-center text-xs font-bold text-slate-500 uppercase tracking-wider">
+                                Total</th>
+                            <th
+                                class="px-6 py-4 text-center text-xs font-bold text-emerald-500 uppercase tracking-wider">
+                                Present</th>
+                            <th class="px-6 py-4 text-center text-xs font-bold text-rose-500 uppercase tracking-wider">
+                                Absent</th>
+                            <th
+                                class="px-6 py-4 text-center text-xs font-bold text-indigo-500 uppercase tracking-wider">
+                                Percentage</th>
+                            <th class="px-6 py-4 text-center text-xs font-bold text-slate-500 uppercase tracking-wider">
+                                Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="reportTableBody" class="divide-y divide-slate-100 text-sm"></tbody>
+                </table>
+            </div>
+
+            <!-- No-data state -->
+            <div id="noDataMsg"
+                class="hidden text-center py-16 bg-slate-50 rounded-2xl border border-dashed border-slate-300 mt-6">
+                <div
+                    class="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm text-slate-300">
+                    <i class="fas fa-folder-open text-3xl"></i>
+                </div>
+                <p class="text-slate-500 text-lg font-medium">No records found</p>
+                <p class="text-slate-400 text-sm mt-1">There is no attendance data matching these filters.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const SECTIONS_URL = "{% url 'get_sections' %}";
+    const SUBJECTS_URL = "{% url 'get_subjects' %}";
+    const REPORT_URL = "{% url 'api_get_report_data' %}";
+
+    const classSelect = document.getElementById('classSelect');
+    const sectionSelect = document.getElementById('sectionSelect');
+    const subjectSelect = document.getElementById('subjectSelect');
+    const startDate = document.getElementById('startDate');
+    const endDate = document.getElementById('endDate');
+    const generateBtn = document.getElementById('generateBtn');
+    const spinner = document.getElementById('loadingSpinner');
+    const errorBanner = document.getElementById('errorBanner');
+    const errorMsg = document.getElementById('errorMsg');
+    const reportOutput = document.getElementById('reportOutput');
+    const tableBody = document.getElementById('reportTableBody');
+    const noDataMsg = document.getElementById('noDataMsg');
+    const tableSearch = document.getElementById('tableSearch');
+
+    // Set today as default max end date
+    const today = new Date().toISOString().split('T')[0];
+    endDate.value = today;
+    endDate.max = today;
+    startDate.max = today;
+
+    // Set a date 30 days ago as default start date
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    startDate.value = thirtyDaysAgo.toISOString().split('T')[0];
+
+    // ── Helpers ──────────────────────────────────────────────────
+    function setSelectOptions(sel, items, placeholder) {
+        sel.innerHTML = `<option value="">${placeholder}</option>`;
+        items.forEach(item => {
+            const opt = document.createElement('option');
+            opt.value = item.id;
+            opt.textContent = item.name;
+            sel.appendChild(opt);
+        });
+    }
+
+    function checkGenerateReady() {
+        const ok = classSelect.value && sectionSelect.value &&
+            subjectSelect.value && startDate.value && endDate.value;
+        generateBtn.disabled = !ok;
+        if (ok) {
+            generateBtn.classList.remove('opacity-60');
+        } else {
+            generateBtn.classList.add('opacity-60');
+        }
+    }
+
+    function showError(msg) {
+        errorBanner.classList.remove('hidden');
+        errorMsg.textContent = msg;
+    }
+    function hideError() { errorBanner.classList.add('hidden'); }
+
+    // ── Cascade: Class → Sections ─────────────────────────────────
+    classSelect.addEventListener('change', async () => {
+        const cid = classSelect.value;
+        sectionSelect.innerHTML = '<option value="">— Select Section —</option>';
+        subjectSelect.innerHTML = '<option value="">— Select Subject —</option>';
+        sectionSelect.disabled = true;
+        subjectSelect.disabled = true;
+
+        sectionSelect.classList.add('bg-slate-50');
+        subjectSelect.classList.add('bg-slate-50');
+
+        checkGenerateReady();
+
+        if (!cid) return;
+
+        // Visual loading
+        sectionSelect.innerHTML = '<option value="">Loading...</option>';
+
+        const res = await fetch(`${SECTIONS_URL}?class_id=${cid}`);
+        const data = await res.json();
+        setSelectOptions(sectionSelect, data, '— Select Section —');
+        sectionSelect.disabled = false;
+        sectionSelect.classList.remove('bg-slate-50', 'opacity-60');
+    });
+
+    // ── Cascade: Section → Subjects ───────────────────────────────
+    sectionSelect.addEventListener('change', async () => {
+        const cid = classSelect.value;
+        subjectSelect.innerHTML = '<option value="">— Select Subject —</option>';
+        subjectSelect.disabled = true;
+        subjectSelect.classList.add('bg-slate-50');
+        checkGenerateReady();
+
+        if (!sectionSelect.value || !cid) return;
+
+        // Visual loading
+        subjectSelect.innerHTML = '<option value="">Loading...</option>';
+
+        const res = await fetch(`${SUBJECTS_URL}?class_id=${cid}`);
+        const data = await res.json();
+        setSelectOptions(subjectSelect, data, '— Select Subject —');
+        subjectSelect.disabled = false;
+        subjectSelect.classList.remove('bg-slate-50', 'opacity-60');
+    });
+
+    subjectSelect.addEventListener('change', checkGenerateReady);
+    startDate.addEventListener('change', checkGenerateReady);
+    endDate.addEventListener('change', checkGenerateReady);
+
+    // Initial check
+    checkGenerateReady();
+
+    // ── Generate Report ───────────────────────────────────────────
+    generateBtn.addEventListener('click', async () => {
+        hideError();
+        reportOutput.classList.add('hidden');
+        spinner.classList.remove('hidden');
+
+        const params = new URLSearchParams({
+            class_id: classSelect.value,
+            section_id: sectionSelect.value,
+            subject_id: subjectSelect.value,
+            start_date: startDate.value,
+            end_date: endDate.value,
+        });
+
+        try {
+            const res = await fetch(`${REPORT_URL}?${params}`);
+            const data = await res.json();
+            spinner.classList.add('hidden');
+
+            if (!res.ok) { showError(data.error || 'Server error.'); return; }
+
+            renderReport(data);
+        } catch (err) {
+            spinner.classList.add('hidden');
+            showError('Network error — please try again.');
+        }
+    });
+
+    // ── Render ────────────────────────────────────────────────────
+    function renderReport(data) {
+        const rows = data.rows || [];
+
+        // Formatting dates nicer
+        const formatOptions = { month: 'short', day: 'numeric', year: 'numeric' };
+        const dstart = new Date(data.start_date).toLocaleDateString('en-US', formatOptions);
+        const dend = new Date(data.end_date).toLocaleDateString('en-US', formatOptions);
+
+        // Range label
+        document.getElementById('rangeLabel').innerHTML =
+            `<i class="fas fa-calendar-day mr-2 opacity-70"></i>
+             <span class="font-bold mr-1">${dstart}</span> to <span class="font-bold ml-1 mr-3">${dend}</span>
+             <div class="h-4 w-px bg-indigo-200 mx-2"></div>
+             <span class="ml-1 opacity-70">Sessions:</span> <span class="font-bold ml-1">${data.total_sessions}</span>`;
+
+        // Summary cards
+        const avgPct = rows.length
+            ? (rows.reduce((s, r) => s + r.percentage, 0) / rows.length).toFixed(1)
+            : 0;
+        const above75 = rows.filter(r => r.percentage >= 75).length;
+        const low = rows.filter(r => r.percentage < 50).length;
+
+        document.getElementById('summaryCards').innerHTML = `
+      ${summaryCard('fas fa-user-graduate', 'Total Students', rows.length, 'from-blue-500 to-indigo-600', 'text-indigo-100', 'text-indigo-600', 'bg-indigo-50')}
+      ${summaryCard('fas fa-percent', 'Avg Attendance', avgPct + '%', 'from-emerald-400 to-teal-500', 'text-teal-100', 'text-teal-600', 'bg-teal-50')}
+      ${summaryCard('fas fa-shield-alt', 'Optimal (≥75%)', above75, 'from-emerald-500 to-green-600', 'text-green-100', 'text-green-600', 'bg-green-50')}
+      ${summaryCard('fas fa-exclamation-triangle', 'Critical (<50%)', low, 'from-orange-500 to-rose-500', 'text-rose-100', 'text-rose-600', 'bg-rose-50')}
+    `;
+
+        // Table rows
+        if (rows.length === 0) {
+            tableBody.innerHTML = '';
+            noDataMsg.classList.remove('hidden');
+            document.querySelector('.overflow-x-auto').classList.add('hidden');
+        } else {
+            noDataMsg.classList.add('hidden');
+            document.querySelector('.overflow-x-auto').classList.remove('hidden');
+            tableBody.innerHTML = rows.map((r, i) => tableRow(r, i + 1)).join('');
+            document.getElementById('editAttendanceBtn').classList.remove('hidden');
+            document.getElementById('editAttendanceBtn').classList.add('flex');
+        }
+
+        reportOutput.classList.remove('hidden');
+    }
+
+    function summaryCard(icon, label, value, bgGradient, glowColor, iconColor, iconBg) {
+        return `
+      <div class="bg-white rounded-2xl p-6 shadow-md border border-slate-100 hover:-translate-y-1 transition-transform relative overflow-hidden group">
+        <div class="absolute -right-4 -top-4 w-24 h-24 ${bgGradient} rounded-full opacity-10 group-hover:scale-150 transition-transform duration-500 z-0"></div>
+        <div class="flex items-start justify-between relative z-10 w-full">
+            <div>
+                <p class="text-slate-500 font-bold text-xs uppercase tracking-wider mb-2">${label}</p>
+                <h4 class="text-3xl font-heading font-extrabold text-slate-800">${value}</h4>
+            </div>
+            <div class="w-12 h-12 rounded-xl ${iconBg} ${iconColor} flex items-center justify-center text-xl shadow-sm">
+                <i class="${icon}"></i>
+            </div>
+        </div>
+      </div>`;
+    }
+
+    function tableRow(r, idx) {
+        let badgeClass, badgeText, badgeIcon, strokeClass;
+        if (r.percentage >= 75) {
+            badgeClass = 'bg-emerald-50 border border-emerald-200 text-emerald-700';
+            badgeText = 'Optimal';
+            badgeIcon = 'fa-check-circle';
+            strokeClass = 'text-emerald-500';
+        } else if (r.percentage >= 50) {
+            badgeClass = 'bg-amber-50 border border-amber-200 text-amber-700';
+            badgeText = 'Average';
+            badgeIcon = 'fa-exclamation-circle';
+            strokeClass = 'text-amber-500';
+        } else {
+            badgeClass = 'bg-rose-50 border border-rose-200 text-rose-700';
+            badgeText = 'Critical';
+            badgeIcon = 'fa-times-circle';
+            strokeClass = 'text-rose-500';
+        }
+
+        const initial = r.name.charAt(0).toUpperCase();
+
+        return `
+      <tr class="hover:bg-indigo-50/50 transition student-row group"
+          data-name="${r.name.toLowerCase()}" data-roll="${r.roll.toLowerCase()}">
+        <td class="px-6 py-4 text-slate-400 font-medium">${idx}</td>
+        <td class="px-6 py-4">
+            <div class="flex items-center">
+                <div class="w-8 h-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center mr-3 font-bold text-xs shadow-sm border border-slate-200 group-hover:bg-indigo-100 group-hover:text-indigo-600 transition-colors">
+                    ${initial}
+                </div>
+                <div>
+                    <p class="text-slate-800 font-bold">${r.name}</p>
+                    <p class="text-xs text-slate-500 font-mono mt-0.5">${r.roll}</p>
+                </div>
+            </div>
+        </td>
+        <td class="px-6 py-4 text-center">
+            <span class="font-bold text-slate-600">${r.sessions}</span>
+        </td>
+        <td class="px-6 py-4 text-center">
+            <span class="inline-flex w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 items-center justify-center font-bold text-sm">
+                ${r.present}
+            </span>
+        </td>
+        <td class="px-6 py-4 text-center">
+            <span class="inline-flex w-8 h-8 rounded-full bg-rose-50 text-rose-500 items-center justify-center font-bold text-sm">
+                ${r.absent}
+            </span>
+        </td>
+        <td class="px-6 py-4 text-center">
+            <div class="flex items-center justify-center">
+                <div class="relative w-10 h-10 mr-3 hidden sm:block">
+                    <!-- Simple SVG Ring Chart representation -->
+                    <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                        <path class="text-slate-100" stroke-width="3" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                        <path class="${strokeClass}" stroke-dasharray="${r.percentage}, 100" stroke-width="4" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                    </svg>
+                </div>
+                <span class="${strokeClass} font-bold text-base">${r.percentage}%</span>
+            </div>
+        </td>
+        <td class="px-6 py-4 text-center">
+          <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold ${badgeClass} shadow-sm">
+            <i class="fas ${badgeIcon} mr-1.5 opacity-70"></i> ${badgeText}
+          </span>
+        </td>
+      </tr>`;
+    }
+
+    // ── Table Search ──────────────────────────────────────────────
+    tableSearch.addEventListener('input', () => {
+        const q = tableSearch.value.toLowerCase();
+        let visibleCount = 0;
+        document.querySelectorAll('.student-row').forEach(row => {
+            const match = row.dataset.name.includes(q) || row.dataset.roll.includes(q);
+            row.style.display = match ? '' : 'none';
+            if (match) visibleCount++;
+        });
+
+        // Show/hide no data message based on search results
+        if (visibleCount === 0 && document.querySelectorAll('.student-row').length > 0) {
+            noDataMsg.classList.remove('hidden');
+            noDataMsg.querySelector('p.text-lg').textContent = 'No matching records found';
+            noDataMsg.querySelector('p.text-sm').textContent = `No student matches "${tableSearch.value}"`;
+        } else if (document.querySelectorAll('.student-row').length > 0) {
+            noDataMsg.classList.add('hidden');
+        }
+    });
+
+    // ── Export CSV ────────────────────────────────────────────────
+    document.getElementById('exportBtn').addEventListener('click', () => {
+        const rows = [...document.querySelectorAll('.student-row')];
+        const header = ['#', 'Roll No', 'Name', 'Total Sessions', 'Present', 'Absent', 'Percentage', 'Status'];
+        const lines = [header.join(',')];
+
+        rows.forEach((row, i) => {
+            // Simplified extraction since we formatted with complex HTML now
+            const roll = row.dataset.roll.toUpperCase();
+            const name = row.dataset.name.replace(/\b\w/g, l => l.toUpperCase()); // naive Title Case
+
+            // Re-fetch clean text from td nodes by index safely
+            const tds = row.querySelectorAll('td');
+            const total = tds[2].textContent.trim();
+            const present = tds[3].textContent.trim();
+            const absent = tds[4].textContent.trim();
+
+            // Extracted specifically holding % char
+            const pctNode = tds[5].querySelector('span.font-bold, span.text-base');
+            const percentage = pctNode ? pctNode.textContent.trim() : tds[5].textContent.trim().replace(/\s+/g, '');
+
+            // Extract the badge text
+            const badgeTextNode = tds[6].querySelector('span.inline-flex');
+            const status = badgeTextNode ? badgeTextNode.textContent.trim() : '';
+
+            lines.push(`"${i + 1}","${roll}","${name}","${total}","${present}","${absent}","${percentage}","${status}"`);
+        });
+
+        const blob = new Blob([lines.join('\n')], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+
+        let cName = classSelect.options[classSelect.selectedIndex].text.replace(/[^a-z0-9]/gi, '_');
+        a.download = `Attendance_${cName}_${new Date().toISOString().slice(0, 10)}.csv`;
+
+        a.click();
+        URL.revokeObjectURL(url);
+    });
+
+    // ── Edit Attendance Navigation ────────────────────────────────
+    document.getElementById('editAttendanceBtn').addEventListener('click', () => {
+        const params = new URLSearchParams({
+            class_id: classSelect.value,
+            section_id: sectionSelect.value,
+            subject_id: subjectSelect.value,
+            start_date: startDate.value,
+            end_date: endDate.value,
+        });
+        window.location.href = `{% url 'admin_edit_attendance' %}?${params.toString()}`;
+    });
+</script>
+{% endblock %}
