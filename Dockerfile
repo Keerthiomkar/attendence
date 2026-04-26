@@ -27,4 +27,4 @@ COPY . /app/
 EXPOSE 8000
 
 # Run migrations + collectstatic + start server
-CMD ["sh", "-c", "python manage.py migrate && python manage.py collectstatic --noinput && gunicorn attendance_system.wsgi:application"]
+CMD ["sh", "-c", "python manage.py showmigrations && python manage.py migrate --noinput && python manage.py collectstatic --noinput && gunicorn attendance_system.wsgi:application --bind 0.0.0.0:$PORT"]
